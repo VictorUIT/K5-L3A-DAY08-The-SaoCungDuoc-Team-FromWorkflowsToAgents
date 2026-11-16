@@ -6,7 +6,7 @@
 
 - Họ tên: Nguyễn Văn Ngọc Sơn
 - MSSV: 2A202603600
-- Email: `ĐIỀN`
+- Email: kidoamdice@gmail.com
 - GitHub: [kynnnS](https://github.com/kynnnS)
 
 ## 2. Phần việc phụ trách
