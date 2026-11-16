@@ -15,7 +15,10 @@ Sửa `src/lab8/shapes/orchestrator.py`, thêm test độc lập và cập nhậ
 
 ## 3. Đóng góp cụ thể
 
-**Commit:** [`0d036c7` — Orchestrator + Handoff](https://github.com/VictorUIT/K5-L3A-DAY08-The-SaoCungDuoc-Team-FromWorkflowsToAgents/commit/0d036c752bd97c243dd1275430d187ad344943ca).
+**Commit:**
+
+- [`0d036c7` — Orchestrator + Handoff](https://github.com/VictorUIT/K5-L3A-DAY08-The-SaoCungDuoc-Team-FromWorkflowsToAgents/commit/0d036c752bd97c243dd1275430d187ad344943ca).
+- [`4b0043f` — Test result](https://github.com/VictorUIT/K5-L3A-DAY08-The-SaoCungDuoc-Team-FromWorkflowsToAgents/commit/4b0043f972b39d05be6adc0a93d30a06a209efc0).
 
 - Review đường `plan → handoff → investigator → quote → host → trace`. Giữ `facts={}`, ba tool đọc, không truyền ticket, principal, secret hoặc header qua handoff; investigator không có tool ghi.
 - Chứng minh lỗ hổng quote tự nhất quán nhưng sai: `amount_vnd=1, parts={FAKE: 1}` vượt kiểm tra `max(parts)` của baseline. C-001 bị hoàn 1 VND thay vì 35.000 VND; C-014 thành `denied`, proposal 1 thay vì `resolved`, proposal 150.000. Đây là fault injection vào kết quả investigator, không phải lỗi phát sinh tự nhiên của MockLLM trong public benchmark.

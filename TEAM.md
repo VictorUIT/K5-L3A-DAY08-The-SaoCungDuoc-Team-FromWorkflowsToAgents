@@ -5,7 +5,7 @@
 - Tên nhóm: The SaoCungDuoc Team
 - Lớp: L3A
 - Repo nhóm: `K5-L3A-DAY08-The-SaoCungDuoc-Team-FromWorkflowsToAgents` (xem [SUBMISSION.md](SUBMISSION.md))
-- URL repo, nhánh chứa cải tiến, commit kiểm chứng: https://github.com/VictorUIT/K5-L3A-DAY08-The-SaoCungDuoc-Team-FromWorkflowsToAgents, nhánh `feat/an-orchestrator-hardening`, commit `0d036c7` (trùng `report/team/decision_adr.md`)
+- URL repo, nhánh nộp, commit kiểm chứng: https://github.com/VictorUIT/K5-L3A-DAY08-The-SaoCungDuoc-Team-FromWorkflowsToAgents, nhánh `main`, commit `0d036c7` (trùng `report/team/decision_adr.md`)
 
 ## Thành viên
 
@@ -29,7 +29,7 @@ Gợi ý chia vai:
 | --- | --- | --- | --- |
 | Trần Quốc Tuấn Khanh | Workflow + Integration | `d6c1b94` (báo cáo cá nhân); commit kỹ thuật: chưa có | chưa có |
 | Nguyễn Văn Ngọc Sơn | Single Agent | `24eae51` (ba shape), `7d27079` (test), `1a2a348` (bằng chứng), `629ab80` (báo cáo) | `src/tests/test_team_shapes.py` (237 test) |
-| Nguyễn Bình An | Orchestrator + Handoff | [`0d036c7`](https://github.com/VictorUIT/K5-L3A-DAY08-The-SaoCungDuoc-Team-FromWorkflowsToAgents/commit/0d036c752bd97c243dd1275430d187ad344943ca) | `src/tests/test_an_orchestrator_hardening.py` (22 test) |
+| Nguyễn Bình An | Orchestrator + Handoff | [`0d036c7`](https://github.com/VictorUIT/K5-L3A-DAY08-The-SaoCungDuoc-Team-FromWorkflowsToAgents/commit/0d036c752bd97c243dd1275430d187ad344943ca) (Orchestrator + Handoff), [`4b0043f`](https://github.com/VictorUIT/K5-L3A-DAY08-The-SaoCungDuoc-Team-FromWorkflowsToAgents/commit/4b0043f972b39d05be6adc0a93d30a06a209efc0) (Test result) | `src/tests/test_an_orchestrator_hardening.py` (22 test) |
 | Đỗ Phương Nam | Ledger + Evaluation | `3744137` (bonus B5: provider idempotency + reconciliation, test ledger) | `src/tests/test_bonus_provider.py` (43 test), `src/tests/test_ledger_replay_conflict.py` (3 test) |
 
 ## Cá nhân
