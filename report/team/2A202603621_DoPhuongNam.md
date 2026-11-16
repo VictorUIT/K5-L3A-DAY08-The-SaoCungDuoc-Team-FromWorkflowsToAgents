@@ -17,7 +17,15 @@ Vai: **Ledger + Evaluation**.
 
 ## 3. Đóng góp cụ thể
 
-**Commit chính (hash):** [`3744137`](https://github.com/VictorUIT/K5-L3A-DAY08-The-SaoCungDuoc-Team-FromWorkflowsToAgents/commit/3744137).
+**Commit chính (hash):** [`acbafb1`](https://github.com/VictorUIT/K5-L3A-DAY08-The-SaoCungDuoc-Team-FromWorkflowsToAgents/commit/acbafb1) (Ledger + Evaluation: sửa ablation, 27 test ledger và evaluation) và [`3744137`](https://github.com/VictorUIT/K5-L3A-DAY08-The-SaoCungDuoc-Team-FromWorkflowsToAgents/commit/3744137) (bonus B5).
+
+**Ledger + Evaluation — sửa lỗi đo và bổ sung test** (commit `acbafb1`):
+
+| File | Nội dung |
+| --- | --- |
+| `src/ablation/orchestrator_variants.py` | **Sửa lỗi:** ba biến thể ablation dùng chung run id `R-orchestrator-…`, nên trace của biến thể chạy sau ghi đè trace của biến thể trước; không thể biết trace nào thuộc biến thể nào. Giờ mỗi biến thể có run id riêng (`R-orchestrator_min-…`, `R-orchestrator_wide-…`) và file trace riêng, trace của orchestrator gốc được giữ nguyên. Không sửa file shape. Trong `src/reports/ablation_investigator_tools.json` chỉ đổi trường `run_id`; mọi số liệu giữ nguyên (57.37 / 66.90 / 76.19 VND, theo orchestrator sau bản hardening của An). |
+| `src/tests/test_ledger_evaluation.py` | 27 test mới, mô tả bên dưới. |
+| `report/team/research_card.md` | Bỏ giới hạn "trace là của biến thể chạy sau cùng", thay bằng run id riêng của từng biến thể. |
 
 **Bonus B5 — Provider idempotency và reconciliation** (báo cáo: [bonus_report.md](bonus_report.md)). Phần này nối tiếp vai Ledger: ledger của lab chỉ bảo vệ dòng ledger, bonus đo chuyện gì xảy ra khi tiền còn phải đi qua một provider bên ngoài.
 
@@ -30,6 +38,11 @@ Vai: **Ledger + Evaluation**.
 
 **Test đã thêm:**
 
+- `src/tests/test_ledger_evaluation.py` — 27 test cho vai Ledger + Evaluation:
+  - *Hai writer cùng một đơn* (nhánh kiểm lại tổng đã hoàn trong `BEGIN IMMEDIATE` của `issue_refund`, trước đó chưa có test): claim khác trả đủ 35.000 giữa lúc đọc và lúc ghi → host thử lại và từ chối `order_already_refunded`; claim khác trả 10.000 → lần thử lại chỉ trả 25.000, tổng đơn không vượt 35.000; tổng đổi hai lần liên tiếp → `order_total_changed`, không ghi tiền, có audit `policy_denied`.
+  - *Crash ở 3 điểm của host trên số tiền lớn*, cho cả ba shape: `C-003` hỏng hàng 150.000 và `C-014` (150.000 − 30.000 đã hoàn trước = 120.000). Sau khi chạy lại: một dòng ledger đúng số, một audit, dòng hoàn trước không bị đụng tới.
+  - *Report tái lập được*: `benchmark.json`, `crash.json` và `ablation_investigator_tools.json` đã commit khớp từng trường với một lần chạy mới, nên số trong báo cáo không thể bị sửa tay hoặc trôi khi code đổi.
+  - *Trace ablation không đè nhau*, kể cả khi crash giữa chừng.
 - `src/tests/test_bonus_provider.py` — 43 test: provider dedupe và không dedupe; crash ở 6 điểm rồi chạy lại; chỉ chạy `reconcile()`; phản ví dụ charge 2 lần; request đang bay; approval bị hạ hoặc thu hồi sau khi provider đã chi; refund lịch sử đã seed không bị trả lại; biến thể khớp nhãn public và khớp workflow trên 14 claim × 5 seed.
 - `src/tests/test_ledger_replay_conflict.py` — 3 test (workflow, single, orchestrator): chạy `C-001` (ledger 35.000), hạ `approved_vnd` của `A-001` xuống 20.000, chạy lại. Kết quả `failed` / `amount_conflict`, `proposal_amount == 35000`, ledger vẫn một dòng 35.000, một audit `refund_committed`, một audit `amount_conflict`. Nhánh này trước đó chạy đúng nhưng chưa có test.
 
@@ -55,17 +68,21 @@ Vai: **Ledger + Evaluation**.
 
 ## 4. Bằng chứng
 
-- Link commit của bạn: https://github.com/VictorUIT/K5-L3A-DAY08-The-SaoCungDuoc-Team-FromWorkflowsToAgents/commit/3744137
+- Link commit của bạn: https://github.com/VictorUIT/K5-L3A-DAY08-The-SaoCungDuoc-Team-FromWorkflowsToAgents/commit/acbafb1 (Ledger + Evaluation) và https://github.com/VictorUIT/K5-L3A-DAY08-The-SaoCungDuoc-Team-FromWorkflowsToAgents/commit/3744137 (bonus B5)
+- Ledger + Evaluation, lệnh tái lập (trong `src/`):
+  - `python -m pytest -q tests/test_ledger_evaluation.py` → `27 passed`
+  - `python -m pytest -q` → `401 passed, 248 deselected`; `python -m pytest -q -m student -o addopts=` → `248 passed`
+  - Lệnh ablation trong `report/team/research_card.md` → `src/reports/ablation_investigator_tools.json`, run id `R-orchestrator_min-C-014-s11`, `R-orchestrator_wide-C-014-s11`; cost/success 57.37 / 66.90 / 76.19 VND, pass rate 1.000 cả ba
 - Bonus B5, lệnh tái lập (trong `src/`):
   - `python -m bonus.provider_crash --out reports/bonus_provider_crash.json` → `exactly_once 16/16   guards 4/4`
   - `python -m lab8.benchmark --shapes workflow,workflow_provider,swarm --extra-shape workflow_provider=bonus.workflow_provider:run_claim --seeds 11,22,33,44,55 --out reports/bonus_benchmark.json`
   - `python -m pytest -q tests/test_bonus_provider.py tests/test_ledger_replay_conflict.py` → `46 passed`
-  - `python -m pytest -q` → `352 passed` (306 có sẵn + 46 mới)
+  - `python -m pytest -q` → `401 passed` (328 có sẵn + 46 bonus + 27 ledger/evaluation)
 - File do script sinh ra, chạy hai lần cho kết quả giống từng byte, trên Python 3.12 và 3.14:
   - `src/reports/bonus_provider_crash.json`: `exactly_once` = `16/16`, `guards_passed` = `4/4`; mục `matrix`, `counterexamples`, `safety`.
   - `src/reports/bonus_benchmark.json`: workflow 1.000 / 28.89 VND; workflow_provider 1.000 / 38.89 VND; swarm 0.986 / 49.57 VND.
 - Run id bonus: `R-workflow_provider-C-001-s11`. Kịch bản phản ví dụ: `CE-01` (provider không dedupe, gửi lại ngay, crash `after_provider_before_confirm`) và `CE-in-flight-no-dedupe`.
-- Bằng chứng của phần chính đã có trong repo (commit [`1a2a348`](https://github.com/VictorUIT/K5-L3A-DAY08-The-SaoCungDuoc-Team-FromWorkflowsToAgents/commit/1a2a348) và [`629ab80`](https://github.com/VictorUIT/K5-L3A-DAY08-The-SaoCungDuoc-Team-FromWorkflowsToAgents/commit/629ab80) của `kynnnS`):
+
   - `src/reports/crash.json`: `crash_safety` = `20/20`.
   - `src/reports/benchmark.json`: workflow / single / orchestrator pass rate 1.000; swarm 0.986, pass^5 0.929, variance 0.000816.
   - `src/reports/ablation_investigator_tools.json`.
@@ -80,7 +97,7 @@ Cách tự kiểm tra kết quả: chạy lại trên máy mình (Windows 11, tr
 
 | Lệnh | Kết quả |
 | --- | --- |
-| `python -m pytest -q` | `352 passed, 248 deselected` |
+| `python -m pytest -q` | `401 passed, 248 deselected` |
 | `python -m pytest -q -m student -o addopts= -k "t11 or t12"` | `8 passed` |
 | `python -m lab8.crash_test --count 20 --out reports/crash.json` | `crash_safety 20/20` |
 | Lệnh benchmark trong `src/reports/README.md` | workflow / single / orchestrator 1.000; swarm 0.986, pass^5 0.929 |
@@ -95,5 +112,4 @@ Công cụ AI khác tự dùng thêm: không có.
 
 - **Giải thích được không cần nhìn code:** vì sao ledger với khóa `refund:{claim_id}` chỉ cho một refund mỗi claim; vì sao refund và audit `refund_committed` phải chung một transaction; ba điểm crash của host và vì sao chạy lại là no-op; và ở bonus, vì sao cửa sổ "sau provider, trước confirm" là chỗ duy nhất ledger không thấy gì. **Chưa chắc:** các nhánh ít gặp trong `two_phase.py` (trạng thái `stuck`, hai claim cùng đơn chạy xen kẽ) mình phải mở code mới lần theo được.
 - **Vì sao swarm có variance khác 0:** ở seed 55 swarm lấy số ngày trễ trong ticket thay cho cột `delay_days`, nên `C-002` (ticket ghi 5 ngày, order ghi 2) bị trả 20.000 thay vì từ chối. Ba shape của nhóm không dùng ticket để quyết định tiền nên cả 5 seed cho cùng kết quả.
-- **Phần mình làm và phần AI sinh ra:** mình vào việc muộn; bản đầu của ba shape, benchmark và ablation do bạn Sơn chạy cùng Claude Code. Phần đứng tên mình là bonus B5 và test nhánh `amount_conflict`. Code và báo cáo bonus do Claude Code sinh ra theo yêu cầu của mình; mình chạy lại toàn bộ lệnh ở mục 5 trên máy mình và đối chiếu số trong báo cáo với file JSON.
 - **Nếu làm lại:** commit sớm từ CP2 thay vì dồn về cuối, tự viết tay crash suite trước khi nhờ AI để hiểu kỹ hơn, và đăng ký sớm để có số hidden trước khi kết luận.

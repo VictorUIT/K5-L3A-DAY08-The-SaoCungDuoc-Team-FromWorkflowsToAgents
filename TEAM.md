@@ -30,7 +30,7 @@ Gợi ý chia vai:
 | Trần Quốc Tuấn Khanh | Workflow + Integration | `d6c1b94` (báo cáo cá nhân), `1b48aed` (test workflow) | `src/tests/test_workflow_steps.py` (15 test) |
 | Nguyễn Văn Ngọc Sơn | Single Agent | `24eae51` (ba shape), `7d27079` (test), `1a2a348` (bằng chứng), `629ab80` (báo cáo) | `src/tests/test_team_shapes.py` (237 test) |
 | Nguyễn Bình An | Orchestrator + Handoff | [`0d036c7`](https://github.com/VictorUIT/K5-L3A-DAY08-The-SaoCungDuoc-Team-FromWorkflowsToAgents/commit/0d036c752bd97c243dd1275430d187ad344943ca) (Orchestrator + Handoff), [`4b0043f`](https://github.com/VictorUIT/K5-L3A-DAY08-The-SaoCungDuoc-Team-FromWorkflowsToAgents/commit/4b0043f972b39d05be6adc0a93d30a06a209efc0) (Test result) | `src/tests/test_an_orchestrator_hardening.py` (22 test) |
-| Đỗ Phương Nam | Ledger + Evaluation | `3744137` (bonus B5: provider idempotency + reconciliation, test ledger) | `src/tests/test_bonus_provider.py` (43 test), `src/tests/test_ledger_replay_conflict.py` (3 test) |
+| Đỗ Phương Nam | Ledger + Evaluation | `1a2a348` (bằng chứng), `629ab80` (báo cáo) — làm trên máy Sơn, đứng tên `kynnnS`; `acbafb1` (sửa trace ablation, test ledger và evaluation); `3744137` (bonus B5: provider idempotency + reconciliation, test ledger) | `src/tests/test_ledger_evaluation.py` (27 test), `src/tests/test_bonus_provider.py` (43 test), `src/tests/test_ledger_replay_conflict.py` (3 test) |
 
 ## Cá nhân
 
@@ -103,7 +103,9 @@ Báo cáo cá nhân: [report/team/2A202603621_DoPhuongNam.md](report/team/2A2026
 
 ### Đóng góp cụ thể
 
-- Commit `3744137`
+- Commit `acbafb1` (Ledger + Evaluation), `3744137` (bonus B5)
+- Ablation: sửa lỗi ba biến thể dùng chung run id làm trace ghi đè nhau (`src/ablation/orchestrator_variants.py`)
+- Test: `src/tests/test_ledger_evaluation.py` (27 test: hai writer cùng một đơn, crash trên `C-003` và `C-014`, report tái lập được, trace ablation riêng)
 - `src/bonus/`: provider giả lập (dedupe / không dedupe), luồng hai pha `reserve → provider → confirm` cạnh host với 3 điểm crash mới, job `reconcile()`, biến thể shape `workflow_provider`, crash suite 16 kịch bản
 - Test: `src/tests/test_bonus_provider.py` (43 test), `src/tests/test_ledger_replay_conflict.py` (3 test, nhánh `amount_conflict` của ba shape)
 
@@ -111,4 +113,4 @@ Báo cáo cá nhân: [report/team/2A202603621_DoPhuongNam.md](report/team/2A2026
 
 - `src/reports/bonus_provider_crash.json`: `exactly_once` 16/16, `guards_passed` 4/4; phản ví dụ provider không dedupe charge 2 lần
 - `src/reports/bonus_benchmark.json`: workflow_provider pass rate 1.000, cost/success 38.89 VND (workflow 28.89)
-- `python -m pytest -q` (trong `src/`): 352 passed; run id `R-workflow_provider-C-001-s11`
+- `python -m pytest -q` (trong `src/`): 401 passed; run id `R-workflow_provider-C-001-s11`, `R-orchestrator_min-C-014-s11`
