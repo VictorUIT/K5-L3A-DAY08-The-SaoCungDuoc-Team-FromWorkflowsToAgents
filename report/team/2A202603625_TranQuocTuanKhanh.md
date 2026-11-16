@@ -35,7 +35,7 @@ Vai: **Workflow + Integration**.
 
 ## 4. Bằng chứng
 
-- Link commit kỹ thuật của bạn: [`1b48aed`](https://github.com/VictorUIT/K5-L3A-DAY08-The-SaoCungDuoc-Team-FromWorkflowsToAgents/commit/1b48aed) (`src/tests/test_workflow_steps.py`: khóa thứ tự bước cố định và ngân sách gọi của workflow).
+- Link commit kỹ thuật: [`1b48aed`](https://github.com/VictorUIT/K5-L3A-DAY08-The-SaoCungDuoc-Team-FromWorkflowsToAgents/commit/1b48aed) (`src/tests/test_workflow_steps.py`: khóa thứ tự bước cố định và ngân sách gọi của workflow).
 - Code: `src/lab8/shapes/workflow.py` (hiện ở commit [`24eae51`](https://github.com/VictorUIT/K5-L3A-DAY08-The-SaoCungDuoc-Team-FromWorkflowsToAgents/commit/24eae51) của `kynnnS`).
 - Test hiện có cho shape này: các test tham số hóa theo shape trong `src/tests/test_team_shapes.py`, ví dụ `test_ticket_overstating_the_delay_does_not_pay`, `test_no_refund_without_a_valid_approval`, `test_unreadable_store_fails_closed_with_a_valid_trace`.
 - Run id: `R-workflow-C-002-s55` (ticket ghi 5 ngày, order ghi 2 ngày, từ chối đúng), `R-workflow-C-014-s55` (T14: proposal 150.000, ledger 120.000).
@@ -45,7 +45,7 @@ Vai: **Workflow + Integration**.
 
 Nhóm dùng **Claude Code (Anthropic)** để viết code ba shape, bộ test `src/tests/test_team_shapes.py` và bản nháp các báo cáo. Mọi số liệu trong báo cáo lấy từ file do `lab8.benchmark` và `lab8.crash_test` sinh ra, không do AI tự đưa ra.
 
-Cách tự kiểm tra kết quả sau khi tự chạy (trong `src/`) và ghi lại kết quả thật:
+Tự kiểm tra kết quả sau khi tự chạy (trong `src/`) và ghi lại kết quả thật:
 
 - `python -m pytest -q` → `554 passed, 3 warnings`
 - `python -m pytest -q -m student -o addopts= -k workflow` → `62 passed, 492 deselected, 3 warnings`
