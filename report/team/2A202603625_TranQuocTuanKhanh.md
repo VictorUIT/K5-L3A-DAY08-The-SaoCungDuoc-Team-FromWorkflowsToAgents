@@ -60,24 +60,7 @@ Công cụ AI tự dùng thêm (nếu có): Claude Code (extension VS Code) đ�
 
 ## 6. Tự đánh giá
 
-- Phần nào trong vai của mình bạn giải thích được mà không cần nhìn code? Phần nào chưa?
-    * Tôi giải thích được quyết định 1 và 2 (ví dụ C-002 và T14); quyết định 3 và 5 tôi hiểu ý nhưng chưa chắc khi bị hỏi sâu.
-
-- Vì sao workflow được chọn trong ADR, và điều kiện nào làm quyết định đó đảo lại?
-    * Số liệu lấy từ decision_adr.md:
-        * Ba shape đều đạt pass rate 1.000 và variance 0. Workflow rẻ nhất, 28.89 VND mỗi lần thành công, trong khi single đắt hơn 29% và orchestrator đắt hơn 73%.
-        * Workflow không đọc ticket nên không mắc lỗi như R-swarm-C-002-s55.
-        * Quyết định đảo lại khi:
-            - thông tin cần để quyết định chỉ nằm trong chữ tự do;
-            - việc điều tra chia ra chạy song song được;
-            - ranh giới tin cậy hoặc đội sở hữu tách riêng.
-
-- Bạn đã tự viết hoặc sửa gì, và phần nào là do công cụ AI sinh ra rồi bạn kiểm lại?
-    * Code workflow.py nằm ở commit 24eae51 của kynnnS.
-    * Test 1b48aed do Claude Code viết theo mô tả có sẵn trong báo cáo.
-    * Phần tích hợp gồm cổng pytest, check_submission và push repo.
-- Nếu làm lại, bạn sẽ làm khác điều gì?
-    * Tôi giải thích được cách workflow thực thi tuần tự cố định (claim $\rightarrow$ order $\rightarrow$ quote $\rightarrow$ host_refund $\rightarrow$ decision), tại sao workflow không đọc ticket để quyết định (model chỉ gọi 1 lần duy nhất sau khi có quyết định để soạn câu trả lời), nguyên lý truyền quote đầy đủ vào durability.issue_refund để tránh tính sai như trường hợp T14 (90.000 thay vì 120.000), và cơ chế fail closed của run_claim khi gặp lỗi không lường trước; phần tôi chưa nắm chắc là các chi tiết xử lý sâu bên trong mô hình agentic ở các shape phức tạp hơn (như swarm hay orchestrator).
-    * ADR chọn workflow vì cả ba shape đều đạt pass rate 1.000 và variance 0, nhưng workflow có chi phí rẻ nhất (28.89 VND mỗi lần thành công, trong khi single đắt hơn 29% và orchestrator đắt hơn 73%); quyết định sẽ đảo lại nếu thông tin cần xử lý nằm ở văn bản tự do đòi hỏi AI suy luận sâu, bài toán cần chia nhỏ chạy song song, hoặc ranh giới đội ngũ sở hữu tính năng bị tách rời.
-    * Phần tôi tự làm: hoàn thiện tích hợp repo (chạy pytest, check_submission), rà soát ranh giới code/model, và thực hiện commit/push; phần Claude Code sinh ra là test 1b48aed (src/tests/test_workflow_steps.py), tôi kiểm lại bằng cách chạy lại bộ test (python -m pytest -q -m student -o addopts= -k workflow đạt 62/62 passed) và đối chiếu kết quả trace thực tế với benchmark chuẩn (src/reports/benchmark.json).
-    * Nếu làm lại, tôi sẽ tối ưu hóa quy trình viết test tự động ngay từ các bước đầu tiên cùng với Claude Code thay vì thực hiện ở giai đoạn hoàn thiện để tiết kiệm thời gian gỡ lỗi lệnh chạy src/.
+- **Phần nắm được:** Tôi giải thích được thứ tự bước cố định của workflow (`claim → order → quote → host_refund → decision`), vì sao workflow không đọc ticket (ví dụ C-002) và vì sao phải truyền quote đầy đủ cho host (T14 ra 120.000, tự trừ trước sẽ thành 90.000). Phần chưa chắc khi bị hỏi sâu: vì sao chỉ host được ghi `policy_denied`, cơ chế fail closed của `run_claim`, và chi tiết bên trong các shape agentic (single, orchestrator, swarm).
+- **ADR:** Cả ba shape nhóm viết đều đạt pass rate 1.000, variance 0; workflow rẻ nhất (28.89 VND/thành công, single đắt hơn 29%, orchestrator 73%) và ít tự chủ nhất. Quyết định đảo lại khi dữ kiện chỉ nằm trong chữ tự do, khi việc điều tra chạy song song được, hoặc khi ranh giới đội sở hữu tách ra.
+- **Tự làm và phần AI:** Tôi phụ trách tích hợp: chạy cổng `pytest`, `check_submission` trong `src/`, quyết định nội dung commit và cập nhật báo cáo. Test `1b48aed` (`src/tests/test_workflow_steps.py`) do Claude Code viết theo mô tả test còn thiếu; tôi kiểm lại bằng cách đọc test, đối chiếu với `workflow.py` và chạy `python -m pytest -q tests/test_workflow_steps.py` (15 passed).
+- **Nếu làm lại:** Tôi sẽ viết test khóa các bước của workflow cùng lúc với code, thay vì bổ sung khi viết báo cáo.
