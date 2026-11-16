@@ -1,27 +1,27 @@
-# Báo cáo cá nhân — MSSV_HoTen
+# Báo cáo cá nhân — 2A202603621_DoPhuongNam
 
-> **Bản nháp.** Các ô ghi `ĐIỀN` phải do chính bạn điền. Đổi tên file thành `MSSV_HoTen.md` (họ tên không dấu) và xóa ghi chú này trước khi nộp.
+> **Bản nháp.** Các ô ghi `ĐIỀN` phải do chính bạn điền. Xóa ghi chú này trước khi nộp.
 
 ## 1. Thông tin thành viên
 
-- Họ tên: `ĐIỀN`
-- MSSV: `ĐIỀN`
+- Họ tên: Đỗ Phương Nam
+- MSSV: 2A202603621
 - Email: `ĐIỀN`
-- GitHub: [An041003](https://github.com/An041003)
+- GitHub: [donam02zx](https://github.com/donam02zx)
 
 ## 2. Phần việc phụ trách
 
-Vai: **ledger / crash + evaluation**.
+Vai: **Ledger + Evaluation**.
 
-- Durability: idempotency, crash và resume của ba shape (`crash_at` truyền vào `durability.issue_refund`).
+- Ledger: idempotency, crash và resume của ba shape (`crash_at` truyền vào `durability.issue_refund`).
 - Evaluation: benchmark 4 shape × 5 seed, crash suite, ablation; số liệu trong ADR, research card và báo cáo nhóm.
 - Rà soát số liệu trong báo cáo so với file trong `src/reports/` và viết test cho phần còn thiếu.
 
 ## 3. Đóng góp cụ thể
 
-**Commit chính (hash):** `ĐIỀN`. Hiện chưa có commit nào đứng tên bạn trong repo nhóm. Rubric C8 cần mỗi người một commit có nội dung và ít nhất một test đã thêm hoặc sửa.
+**Commit chính (hash):** `ĐIỀN`. Hiện chưa có commit nào đứng tên bạn trong repo nhóm.
 
-**Test đã thêm hoặc sửa:** `ĐIỀN` sau khi bạn commit. Một test còn thiếu trong phần này mà bạn có thể tự viết:
+**Test đã thêm hoặc sửa:** `ĐIỀN` sau khi bạn commit. Rubric C8 cần mỗi người một commit có nội dung và ít nhất một test đã thêm hoặc sửa. Một test còn thiếu trong phần này mà bạn có thể tự viết:
 
 - *Gọi lại với số tiền khác số đã commit.* Chạy `C-001` (ledger 35.000), hạ `approved_vnd` của `A-001` xuống 20.000 trong store, chạy lại `C-001`. Kết quả đúng ở cả ba shape phải là `status == "failed"`, `error_reason == "amount_conflict"`, `proposal_amount == 35000`, ledger vẫn một dòng 35.000 và một audit `refund_committed`. Nhánh này đang chạy đúng nhưng chưa có test.
 

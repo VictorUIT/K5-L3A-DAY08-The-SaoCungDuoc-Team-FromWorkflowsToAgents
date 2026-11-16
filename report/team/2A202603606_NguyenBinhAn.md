@@ -1,17 +1,17 @@
-# Báo cáo cá nhân — MSSV_HoTen
+# Báo cáo cá nhân — 2A202603606_NguyenBinhAn
 
-> **Bản nháp.** Các ô ghi `ĐIỀN` phải do chính bạn điền. Đổi tên file thành `MSSV_HoTen.md` (họ tên không dấu) và xóa ghi chú này trước khi nộp.
+> **Bản nháp.** Các ô ghi `ĐIỀN` phải do chính bạn điền. Xóa ghi chú này trước khi nộp.
 
 ## 1. Thông tin thành viên
 
-- Họ tên: `ĐIỀN`
-- MSSV: `ĐIỀN`
+- Họ tên: Nguyễn Bình An
+- MSSV: 2A202603606
 - Email: `ĐIỀN`
-- GitHub: [donam02zx](https://github.com/donam02zx)
+- GitHub: [An041003](https://github.com/An041003)
 
 ## 2. Phần việc phụ trách
 
-Vai: **orchestrator + handoff**.
+Vai: **Orchestrator + Handoff**.
 
 - Shape C `src/lab8/shapes/orchestrator.py`: orchestrator và investigator chỉ đọc.
 - Handoff qua `lab8.handoff.make_handoff` và nội dung trace của handoff.
@@ -19,9 +19,9 @@ Vai: **orchestrator + handoff**.
 
 ## 3. Đóng góp cụ thể
 
-**Commit chính (hash):** `ĐIỀN`. Hiện chưa có commit nào đứng tên bạn trong repo nhóm. Rubric C8 cần mỗi người một commit có nội dung và ít nhất một test đã thêm hoặc sửa.
+**Commit chính (hash):** `ĐIỀN`. Hiện chưa có commit nào đứng tên bạn trong repo nhóm.
 
-**Test đã thêm hoặc sửa:** `ĐIỀN` sau khi bạn commit. Một test còn thiếu trong phần này mà bạn có thể tự viết:
+**Test đã thêm hoặc sửa:** `ĐIỀN` sau khi bạn commit. Rubric C8 cần mỗi người một commit có nội dung và ít nhất một test đã thêm hoặc sửa. Một test còn thiếu trong phần này mà bạn có thể tự viết:
 
 - *Orchestrator không trả tiền theo báo cáo sai.* Thay `orchestrator.run_readonly_investigators` bằng bản trả quote có `amount_vnd` bằng **tổng** các `parts`, chạy `C-014`. Kết quả đúng phải là: trace có event `report_rejected`, `proposal_amount == 150000` (max, không phải 180.000), ledger 120.000. Nhánh này đang chạy đúng nhưng chưa có test.
 
