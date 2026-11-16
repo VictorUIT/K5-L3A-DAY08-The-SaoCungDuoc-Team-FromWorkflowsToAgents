@@ -50,6 +50,19 @@ Luồng hai pha: `reserve` (ghi ý định và số tiền host cho phép) → `
 
 Biến thể tốn thêm 10,00 VND mỗi lần thành công (+35%): 70 request tới provider trên 35 trial có trả tiền, mỗi trial một `lookup` và một `refund`, tính giá như tool call.
 
+**Tự kiểm trên bộ hidden** (`student_drop/`, 40 claim không nhãn × 5 seed, `src/reports/bonus_hidden_selfcheck.json`):
+
+```bash
+python -m lab8.benchmark --shapes workflow,workflow_provider,single,orchestrator --extra-shape workflow_provider=bonus.workflow_provider:run_claim --cases ../student_drop/hidden_claims.jsonl --world ../student_drop/hidden_world_state.json --seeds 11,22,33,44,55 --out reports/bonus_hidden_selfcheck.json
+```
+
+| Shape | Trial | Lỗi | Leak nghi ngờ | resolved / denied / escalated / needs_info | Tool calls | Tổng chi phí (VND) |
+| --- | ---: | ---: | ---: | :---: | ---: | ---: |
+| workflow (baseline) | 200 | 0 | 0 | 90 / 95 / 10 / 5 | 2.90 | 6.006,6 |
+| workflow_provider | 200 | 0 | 0 | 90 / 95 / 10 / 5 | 3.80 | 7.806,6 |
+
+Không có nhãn nên không có pass rate. Status của biến thể trùng baseline ở cả 200 cặp claim × seed, và không claim nào đổi status giữa các seed. Kiểm thêm bằng tay (chạy lại hàm `state()` của `provider_crash.py` trên world hidden, script không nằm trong repo): 90 trial có trả tiền, 0 double charge, 0 lệch provider–ledger, số tiền ledger trùng baseline ở 200/200 trial; crash ở cả 6 điểm rồi chạy lại, trên 40 claim (seed 11): 240/240 ra cùng charge, dòng ledger, số tiền và audit như lần chạy không crash.
+
 ## Kết luận
 
 **Ủng hộ claim của nguồn, và chỉ ra được đúng chỗ.**
@@ -64,5 +77,5 @@ Kết luận đảo ngược khi: (1) provider không cho tra theo key hoặc kh
 - **MockLLM.** Phần này không có quyết định nào của model; model chỉ soạn câu trả lời sau khi đã quyết. Pass rate 1.000 của biến thể vì vậy chỉ nói rằng luồng hai pha không làm hỏng đường quyết định, không nói gì về model thật.
 - **Provider mô phỏng.** Không có mạng, không có timeout thật, latency `unavailable`. "Request đang bay" là một cờ tất định, không phải race thật. Void luôn thành công ngay; provider thật có thể từ chối hoặc mất vài ngày.
 - **Một luồng.** Hai claim trên cùng một đơn chạy xen kẽ chưa được xử lý: reservation chưa tính vào trần theo đơn. Luồng phát hiện ledger và provider lệch số tiền rồi dừng ở trạng thái `stuck` chờ người xử lý, không tự sửa.
-- **Mẫu nhỏ.** Ma trận đo trên một claim (`C-001`), suite thêm `C-003`; 14 claim public cho phần so sánh. Chưa chạy trên bộ hidden.
+- **Mẫu nhỏ.** Ma trận đo trên một claim (`C-001`), suite thêm `C-003`; 14 claim public cho phần so sánh. Bộ hidden chỉ tự kiểm được (không nhãn): không lỗi, không leak, quyết định trùng baseline; pass rate chính thức do grader chấm.
 - **Chi phí là mô phỏng.** +10 VND là hai tool call theo `config/pricing.yaml`, không phải phí giao dịch của provider.
