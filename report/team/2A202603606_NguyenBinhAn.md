@@ -19,6 +19,7 @@ Sửa `src/lab8/shapes/orchestrator.py`, thêm test độc lập và cập nhậ
 
 - [`0d036c7` — Orchestrator + Handoff](https://github.com/VictorUIT/K5-L3A-DAY08-The-SaoCungDuoc-Team-FromWorkflowsToAgents/commit/0d036c752bd97c243dd1275430d187ad344943ca).
 - [`4b0043f` — Test result](https://github.com/VictorUIT/K5-L3A-DAY08-The-SaoCungDuoc-Team-FromWorkflowsToAgents/commit/4b0043f972b39d05be6adc0a93d30a06a209efc0).
+- [`d8a4326` — Self-check Orchestrator trên student_drop](https://github.com/VictorUIT/K5-L3A-DAY08-The-SaoCungDuoc-Team-FromWorkflowsToAgents/commit/d8a43268a5482da51214e20c286f500fbb4c8c1a).
 
 - Review đường `plan → handoff → investigator → quote → host → trace`. Giữ `facts={}`, ba tool đọc, không truyền ticket, principal, secret hoặc header qua handoff; investigator không có tool ghi.
 - Chứng minh lỗ hổng quote tự nhất quán nhưng sai: `amount_vnd=1, parts={FAKE: 1}` vượt kiểm tra `max(parts)` của baseline. C-001 bị hoàn 1 VND thay vì 35.000 VND; C-014 thành `denied`, proposal 1 thay vì `resolved`, proposal 150.000. Đây là fault injection vào kết quả investigator, không phải lỗi phát sinh tự nhiên của MockLLM trong public benchmark.
@@ -54,6 +55,10 @@ Trong 11 test fail trên baseline, 10 test phát hiện sai hành vi/bảo mật
 Cost/success tăng **16.99 VND (34.04%)**. Chi phí không chỉ là cộng thẳng 20 VND: claim thiếu order hoặc sai scope dừng sớm, đồng thời báo cáo diagnostic ngắn hơn làm thay đổi token. Nguồn số mới là `src/reports/benchmark.json`; Workflow, Single và Swarm giữ nguyên toàn bộ summary so với baseline. Workflow vẫn rẻ nhất (28.89 VND), nên giữ quyết định chọn workflow; Orchestrator cao hơn workflow 131.6% trên public.
 
 Ablation được chạy lại bằng lệnh trong `src/ablation/orchestrator_variants.py`, chỉ đổi danh sách tool investigator. Theo `src/reports/ablation_investigator_tools.json`: 2 tool **57.37**, 3 tool **66.90**, 5 tool **76.19 VND/success**; cả ba đạt 70/70, pass^5 1.000, variance 0. Không suy diễn thành kết quả hidden hay hiệu năng model thật.
+
+Tự kiểm riêng Orchestrator + Handoff trên `student_drop`: **40 claim × 5 seed = 200 trial**, dùng seed `11,22,33,44,55`. Kết quả trong [hidden_selfcheck_orchestrator.json](../../src/reports/hidden_selfcheck_orchestrator.json), commit [`d8a4326`](https://github.com/VictorUIT/K5-L3A-DAY08-The-SaoCungDuoc-Team-FromWorkflowsToAgents/commit/d8a43268a5482da51214e20c286f500fbb4c8c1a): 90 `resolved`, 95 `denied`, 5 `needs_info`, 10 `escalated`; không có `error` hoặc `failed`. Cả 200 trial ghi `reason=unlabeled`; trace đúng contract, handoff giữ ba tool chỉ đọc và `facts={}`, không phát hiện canary hoặc các chuỗi PII của fixture trong trace đã kiểm tra. Dữ liệu đầu vào giữ nguyên checksum; `student_drop/` và trace không được commit. Vì không có nhãn, `pass_rate` là `null`; kết quả này không chứng minh đạt gate hidden hoặc độ đúng nghiệp vụ do giảng viên chấm.
+
+Lệnh self-check đã chạy trong `src/`: `python -m lab8.benchmark --shapes orchestrator --cases student_drop/hidden_claims.jsonl --world student_drop/hidden_world_state.json --seeds 11,22,33,44,55 --out reports/hidden_selfcheck_orchestrator.json`.
 
 Run id dẫn chứng: `R-orchestrator-C-014-s11` (proposal 150.000, ledger 120.000, một audit committed, refund history 30.000); `R-orchestrator-C-002-s55` (dùng order thay lời ticket); `R-orchestrator-C-007-s11` (approval từ chối). Trace được sinh cục bộ để kiểm tra, không commit. Các biến thể ablation dùng chung run id nên có thể ghi đè trace của nhau; số liệu lấy từ report JSON của từng trial, không suy ngược từ trace còn lại.
 
