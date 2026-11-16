@@ -5,7 +5,7 @@
 - Tên nhóm: The SaoCungDuoc Team
 - Lớp: L3A
 - Repo nhóm: `K5-L3A-DAY08-The-SaoCungDuoc-Team-FromWorkflowsToAgents` (xem [SUBMISSION.md](SUBMISSION.md))
-- URL repo, nhánh nộp, commit chốt: https://github.com/VictorUIT/K5-L3A-DAY08-The-SaoCungDuoc-Team-FromWorkflowsToAgents, nhánh `main`, commit chốt `629ab80` (trùng `report/team/decision_adr.md`)
+- URL repo, nhánh nộp, commit kiểm chứng: https://github.com/VictorUIT/K5-L3A-DAY08-The-SaoCungDuoc-Team-FromWorkflowsToAgents, nhánh `main`, commit `0d036c7` (trùng `report/team/decision_adr.md`)
 
 ## Thành viên
 
@@ -13,7 +13,7 @@
 | --: | ------ | ---- | ----- | ------ | ------- |
 |   1 | Trần Quốc Tuấn Khanh | 2A202603625 | tranquoctuankhanh1194@gmail.com | [VictorUIT](https://github.com/VictorUIT) | Workflow + Integration |
 |   2 | Nguyễn Văn Ngọc Sơn | 2A202603600 |       | [kynnnS](https://github.com/kynnnS) | Single Agent |
-|   3 | Nguyễn Bình An | 2A202603606 |       | [An041003](https://github.com/An041003) | Orchestrator + Handoff |
+|   3 | Nguyễn Bình An | 2A202603606 | 26ai.annb@vinuni.edu.vn | [An041003](https://github.com/An041003) | Orchestrator + Handoff |
 |   4 | Đỗ Phương Nam | 2A202603621 | donam02zx@gmail.com | [donam02zx](https://github.com/donam02zx) | Ledger + Evaluation |
 
 Gợi ý chia vai:
@@ -29,7 +29,7 @@ Gợi ý chia vai:
 | --- | --- | --- | --- |
 | Trần Quốc Tuấn Khanh | Workflow + Integration | `d6c1b94` (báo cáo cá nhân), `1b48aed` (test workflow) | `src/tests/test_workflow_steps.py` (15 test) |
 | Nguyễn Văn Ngọc Sơn | Single Agent | `24eae51` (ba shape), `7d27079` (test), `1a2a348` (bằng chứng), `629ab80` (báo cáo) | `src/tests/test_team_shapes.py` (237 test) |
-| Nguyễn Bình An | Orchestrator + Handoff | chưa có commit | chưa có |
+| Nguyễn Bình An | Orchestrator + Handoff | [`0d036c7`](https://github.com/VictorUIT/K5-L3A-DAY08-The-SaoCungDuoc-Team-FromWorkflowsToAgents/commit/0d036c752bd97c243dd1275430d187ad344943ca) (Orchestrator + Handoff), [`4b0043f`](https://github.com/VictorUIT/K5-L3A-DAY08-The-SaoCungDuoc-Team-FromWorkflowsToAgents/commit/4b0043f972b39d05be6adc0a93d30a06a209efc0) (Test result) | `src/tests/test_an_orchestrator_hardening.py` (22 test) |
 | Đỗ Phương Nam | Ledger + Evaluation | `3744137` (bonus B5: provider idempotency + reconciliation, test ledger) | `src/tests/test_bonus_provider.py` (43 test), `src/tests/test_ledger_replay_conflict.py` (3 test) |
 
 ## Cá nhân
@@ -86,11 +86,11 @@ Báo cáo cá nhân: [report/team/2A202603606_NguyenBinhAn.md](report/team/2A202
 
 ### Đóng góp cụ thể
 
-- Chưa có commit đứng tên; điền sau khi commit
+- Orchestrator + Handoff ban đầu thực hiện trên máy Sơn. Cải tiến mới tại commit `0d036c7`: xác minh order/quote từ nguồn đáng tin cậy, lọc diagnostic trace, 22 test độc lập.
 
 ### Bằng chứng
 
-- Điền sau khi commit
+- `src/tests/test_an_orchestrator_hardening.py`; `src/reports/benchmark.json`; báo cáo cá nhân ghi kết quả test/benchmark thật. Link commit cải tiến: [`0d036c7`](https://github.com/VictorUIT/K5-L3A-DAY08-The-SaoCungDuoc-Team-FromWorkflowsToAgents/commit/0d036c752bd97c243dd1275430d187ad344943ca).
 
 ## 2A202603621_DoPhuongNam
 

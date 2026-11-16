@@ -1,65 +1,69 @@
 # Báo cáo cá nhân — 2A202603606_NguyenBinhAn
 
-> **Bản nháp.** Các ô ghi `ĐIỀN` phải do chính bạn điền. Xóa ghi chú này trước khi nộp.
-
 ## 1. Thông tin thành viên
 
 - Họ tên: Nguyễn Bình An
 - MSSV: 2A202603606
-- Email: `ĐIỀN`
+- Email: 26ai.annb@vinuni.edu.vn
 - GitHub: [An041003](https://github.com/An041003)
 
 ## 2. Phần việc phụ trách
 
-Vai: **Orchestrator + Handoff**.
+Vai: **Orchestrator + Handoff** (Shape C).
 
-- Shape C `src/lab8/shapes/orchestrator.py`: orchestrator và investigator chỉ đọc.
-- Handoff qua `lab8.handoff.make_handoff` và nội dung trace của handoff.
-- Rà soát ranh giới giữa hai agent và viết test cho phần còn thiếu.
+Sửa `src/lab8/shapes/orchestrator.py`, thêm test độc lập và cập nhật báo cáo/bằng chứng liên quan.
 
 ## 3. Đóng góp cụ thể
 
-**Commit chính (hash):** `ĐIỀN`. Hiện chưa có commit nào đứng tên bạn trong repo nhóm.
+**Commit:**
 
-**Test đã thêm hoặc sửa:** `ĐIỀN` sau khi bạn commit. Rubric C8 cần mỗi người một commit có nội dung và ít nhất một test đã thêm hoặc sửa. Một test còn thiếu trong phần này mà bạn có thể tự viết:
+- [`0d036c7` — Orchestrator + Handoff](https://github.com/VictorUIT/K5-L3A-DAY08-The-SaoCungDuoc-Team-FromWorkflowsToAgents/commit/0d036c752bd97c243dd1275430d187ad344943ca).
+- [`4b0043f` — Test result](https://github.com/VictorUIT/K5-L3A-DAY08-The-SaoCungDuoc-Team-FromWorkflowsToAgents/commit/4b0043f972b39d05be6adc0a93d30a06a209efc0).
 
-- *Orchestrator không trả tiền theo báo cáo sai.* Thay `orchestrator.run_readonly_investigators` bằng bản trả quote có `amount_vnd` bằng **tổng** các `parts`, chạy `C-014`. Kết quả đúng phải là: trace có event `report_rejected`, `proposal_amount == 150000` (max, không phải 180.000), ledger 120.000. Nhánh này đang chạy đúng nhưng chưa có test.
-
-**Các quyết định kỹ thuật trong phần này** (người chấm có thể hỏi trực tiếp):
-
-- Handoff dùng `facts={}`: trước khi điều tra, orchestrator chưa biết dữ kiện nào của order; thứ duy nhất nó có là lời khai trong ticket, không được chuyển đi như một dữ kiện.
-- Handoff không chứa ticket, `principal_id`, secret hay header. Claim thiếu `order_id` thì không dựng handoff.
-- Investigator nhận 3 tool đọc: `lookup_order`, `lookup_refund_history`, `compute_compensation`. `make_handoff` từ chối mọi tool ngoài `READONLY_TOOLS`.
-- Orchestrator kiểm báo cáo trước khi gọi host: `amount_vnd` phải bằng phần lớn nhất trong `parts`. Sai thì tính lại bằng code.
-- Chỉ orchestrator gọi `durability.issue_refund`, với quote đầy đủ.
-- Tóm tắt bằng LLM không được coi là redaction; chỉ allowlist mới là kiểm soát.
+- Review đường `plan → handoff → investigator → quote → host → trace`. Giữ `facts={}`, ba tool đọc, không truyền ticket, principal, secret hoặc header qua handoff; investigator không có tool ghi.
+- Chứng minh lỗ hổng quote tự nhất quán nhưng sai: `amount_vnd=1, parts={FAKE: 1}` vượt kiểm tra `max(parts)` của baseline. C-001 bị hoàn 1 VND thay vì 35.000 VND; C-014 thành `denied`, proposal 1 thay vì `resolved`, proposal 150.000. Đây là fault injection vào kết quả investigator, không phải lỗi phát sinh tự nhiên của MockLLM trong public benchmark.
+- Buộc orchestrator đọc lại order bằng `lookup_order(conn, claim.order_id, claim.principal_id)`, tính canonical quote bằng `compute_compensation` theo policy hiện hành, so sánh order/quote nhận từ investigator và ghi `report_rejected` khi lệch. Chỉ canonical quote đầy đủ được truyền cho `issue_refund`; host tiếp tục giữ approval, trần theo đơn, idempotency và crash recovery.
+- Chứng minh allowlist tên field chưa đủ: PII chèn vào `status`, `reason`, `refund_count` hoặc quote của investigator lọt trace baseline. Bản vá chỉ ghi diagnostic có kiểu dữ liệu kiểm soát, loại các giá trị order/reason tự do; quote canonical trong event từ chối đến từ code đáng tin cậy.
+- Thêm **22 test** trong `src/tests/test_an_orchestrator_hardening.py`: quote giả, tổng parts, order giả, visibility giả, kiểu dữ liệu sai, handoff read-only, T14 qua 5 seed, underpayment, 4 vị trí PII, malformed parts, principal scope và budget. Hai lần đọc xác minh được tính vào budget; với C-014 số tool call là 7 thay vì 5. Claim thiếu order không phát sinh hai lần đọc này; order không visible chỉ phát sinh lần tra order.
 
 ## 4. Bằng chứng
 
-- Link commit của bạn: `ĐIỀN`
-- Code: `src/lab8/shapes/orchestrator.py` (hiện ở commit [`24eae51`](https://github.com/VictorUIT/K5-L3A-DAY08-The-SaoCungDuoc-Team-FromWorkflowsToAgents/commit/24eae51) của `kynnnS`).
-- Test hiện có cho shape này: `test_orchestrator_handoff_is_allowlisted_and_read_only`, `test_trace_and_result_hold_no_ticket_secret_or_pii`, và các test tham số hóa theo shape trong `src/tests/test_team_shapes.py`.
-- Run id: `R-orchestrator-C-014-s11` (handoff đã sanitize, báo cáo investigator có `refund_history` 30.000, proposal 150.000, ledger 120.000).
-- `src/reports/benchmark.json`: orchestrator pass rate 1.000, pass^5 1.000, variance 0, cost/success 49.91 VND mô phỏng.
-- `src/reports/ablation_investigator_tools.json`: 2 tool 40.37, 3 tool 49.91, 5 tool 59.20 VND mỗi lần thành công; pass rate giữ 1.000.
+Đo ngày **16/11/2026** bằng Python 3.12.10, pytest 8.4.2, PyYAML 6.0.3, Windows AMD64, môi trường `.venv`.
+
+| Kiểm tra | Baseline | Sau cải tiến |
+| --- | --- | --- |
+| 11 test có trong gói ban đầu | 3 failed, 8 passed | Được bao phủ trong bộ 22 test đạt |
+| Bộ 22 test hardening | 11 failed, 11 passed | 22 passed |
+| Toàn bộ cổng host `python -m pytest -q` | 352 passed, 248 deselected (chưa thêm test mới) | 374 passed, 248 deselected |
+| Hardening + test Sơn `test_team_shapes.py` | Test Sơn giữ nguyên | 259 passed = 22 mới + 237 đã có |
+| Student `python -m pytest -q -m student -o addopts=` | Không dùng số cũ để suy ra bản vá đạt | 248 passed, 374 deselected |
+| `python -m lab8.smoke` | — | pass, trace clean |
+| `python -m lab8.crash_test --count 20 --out reports/crash.json` | Báo cáo cũ 20/20 | Chạy lại 20/20 |
+
+Trong 11 test fail trên baseline, 10 test phát hiện sai hành vi/bảo mật; test budget còn lại kiểm yêu cầu mới về hai read call. Không coi tất cả các failure này là 11 lỗ hổng độc lập. Crash suite chính thức chủ yếu kiểm host và swarm; crash của Orchestrator được kiểm riêng qua các test crash/resume ba điểm trong bộ test Sơn, cùng T11/T12 của student matrix.
+
+| Orchestrator: 14 claim × 5 seed | Baseline chạy lại | Sau cải tiến |
+| --- | ---: | ---: |
+| Số trial đạt | 70/70 | 70/70 |
+| Pass rate / pass^5 / variance | 1.000 / 1.000 / 0 | 1.000 / 1.000 / 0 |
+| Cost/success (VND mô phỏng) | 49.91 | 66.90 |
+| Tool call trung bình/trial | 4.64 | 6.43 |
+| Model call trung bình/trial | 2.93 | 2.93 |
+| Mean / p95 event steps | 4.50 / 5 | 4.50 / 5 |
+
+Cost/success tăng **16.99 VND (34.04%)**. Chi phí không chỉ là cộng thẳng 20 VND: claim thiếu order hoặc sai scope dừng sớm, đồng thời báo cáo diagnostic ngắn hơn làm thay đổi token. Nguồn số mới là `src/reports/benchmark.json`; Workflow, Single và Swarm giữ nguyên toàn bộ summary so với baseline. Workflow vẫn rẻ nhất (28.89 VND), nên giữ quyết định chọn workflow; Orchestrator cao hơn workflow 131.6% trên public.
+
+Ablation được chạy lại bằng lệnh trong `src/ablation/orchestrator_variants.py`, chỉ đổi danh sách tool investigator. Theo `src/reports/ablation_investigator_tools.json`: 2 tool **57.37**, 3 tool **66.90**, 5 tool **76.19 VND/success**; cả ba đạt 70/70, pass^5 1.000, variance 0. Không suy diễn thành kết quả hidden hay hiệu năng model thật.
+
+Run id dẫn chứng: `R-orchestrator-C-014-s11` (proposal 150.000, ledger 120.000, một audit committed, refund history 30.000); `R-orchestrator-C-002-s55` (dùng order thay lời ticket); `R-orchestrator-C-007-s11` (approval từ chối). Trace được sinh cục bộ để kiểm tra, không commit. Các biến thể ablation dùng chung run id nên có thể ghi đè trace của nhau; số liệu lấy từ report JSON của từng trial, không suy ngược từ trace còn lại.
 
 ## 5. Công cụ AI đã dùng
 
-Nhóm dùng **Claude Code (Anthropic)** để viết code ba shape, bộ test `src/tests/test_team_shapes.py` và bản nháp các báo cáo. Mọi số liệu trong báo cáo lấy từ file do `lab8.benchmark` và `lab8.crash_test` sinh ra, không do AI tự đưa ra.
-
-Cách tự kiểm tra kết quả: `ĐIỀN` sau khi bạn tự chạy trên máy mình (trong `src/`) và ghi lại kết quả thật:
-
-- `python -m pytest -q`
-- `python -m pytest -q -m student -o addopts= -k orchestrator`
-- `python -m lab8.run --shape orchestrator --claim-id C-014 --seed 11 --db data/run.sqlite`, rồi mở `traces/R-orchestrator-C-014-s11.json` để xem handoff
-
-Công cụ AI bạn tự dùng thêm (nếu có) và dùng vào việc gì: `ĐIỀN`.
+GPT: Phân tích bài lab, hướng dẫn chi tiết từng bước thực hiện
+Codex: Thực hiện các bước theo GPT hướng dẫn
 
 ## 6. Tự đánh giá
 
-`ĐIỀN` — tự viết 3–5 dòng. Gợi ý câu hỏi để trả lời:
+Qua việc nghiên cứu Orchestrator + Handoff, tôi nhận thấy kết quả điều tra của agent không nên được mặc định xem là căn cứ đáng tin cậy để thực hiện giao dịch tài chính. Một báo cáo có cấu trúc hợp lệ vẫn có thể sai về nội dung.
 
-- Phần nào trong vai của mình bạn giải thích được mà không cần nhìn code? Phần nào chưa?
-- Vì sao orchestrator đắt hơn workflow 73% mà pass rate không cao hơn, và khi nào nó mới đáng dùng?
-- Bạn đã tự viết hoặc sửa gì, và phần nào là do công cụ AI sinh ra rồi bạn kiểm lại?
-- Nếu làm lại, bạn sẽ làm khác điều gì?
+Tôi tập trung vào việc xác minh kết quả với dữ liệu nguồn và chính sách bằng code, đồng thời giới hạn thông tin và công cụ được chuyển cho investigator. Việc bổ sung bước xác minh có thể làm tăng chi phí xử lý, vì vậy cần đánh giá cả độ an toàn lẫn hiệu quả thực nghiệm trước khi đưa ra kết luận cuối cùng.
