@@ -6,7 +6,7 @@ Tối đa 5 trang ngoài phụ lục. Số liệu lấy từ file trong `src/rep
 
 - Tên nhóm: The SaoCungDuoc Team
 - Thành viên: xem `TEAM.md`
-- Commit chốt (trùng `report/team/decision_adr.md`): 629ab80
+- Commit kiểm chứng (trùng `report/team/decision_adr.md`): 0d036c7
 
 ## 2. Mục tiêu và cách tiếp cận
 
@@ -45,7 +45,7 @@ Nhóm truyền quote đầy đủ vì host tự trừ phần đơn đã được
 | Model làm gì | Một lần gọi soạn câu trả lời, sau khi đã quyết định | Mỗi bước một lần gọi; đọc ticket; chọn tool đọc; đưa khuyến nghị | 3 lần gọi: plan (đọc ticket), investigate (báo cáo), draft |
 | Model có tool ghi không | Không | Không. `run_react` từ chối `issue_refund` | Không. `make_handoff` từ chối tool ngoài `READONLY_TOOLS` |
 | Ticket ảnh hưởng tiền không | Không được đọc để quyết định | Số ngày ticket khai được ghi lại và so với order; order luôn thắng | Ticket ở lại orchestrator, không vào handoff |
-| Code kiểm lại gì trước khi ghi | Không cần, vì code tự làm mọi bước | `_settle` dựng lại quyết định từ kết quả tool do code tự giữ; quote phải là output của `compute_compensation` trên đúng order view đã tra, nếu không thì tính lại | Quote trong báo cáo phải bằng phần lớn nhất trong `parts` (max, không cộng), nếu không thì tính lại |
+| Code kiểm lại gì trước khi ghi | Không cần, vì code tự làm mọi bước | `_settle` dựng lại quyết định từ kết quả tool do code tự giữ; quote phải là output của `compute_compensation` trên đúng order view đã tra, nếu không thì tính lại | Đọc lại order theo principal của claim, tính quote theo policy hiện hành; so với báo cáo, chỉ truyền canonical quote cho host |
 
 **Ranh giới code / model.** Code quyết: lọc theo principal, policy hiệu lực, số tiền, approval, trần theo đơn, idempotency, ghi ledger. Model quyết: đọc ticket, thứ tự tool đọc (B), câu chữ trả lời. Khuyến nghị `final` của agent ở B chỉ được ghi vào trace (`model_recommend`), không phải input của quyết định.
 
@@ -65,14 +65,14 @@ Nhóm truyền quote đầy đủ vì host tự trừ phần đơn đã được
 | --- | ---: | ---: | --- | ---: | ---: | --- | ---: | ---: |
 | workflow | 1.000 | 1.000 | 1.000–1.000 | 0.000000 | 28.89 | 4.43 / 5 | 1.00 | 2.79 |
 | single | 1.000 | 1.000 | 1.000–1.000 | 0.000000 | 37.21 | 6.07 / 7 | 4.43 | 3.43 |
-| orchestrator | 1.000 | 1.000 | 1.000–1.000 | 0.000000 | 49.91 | 4.50 / 5 | 2.93 | 4.64 |
+| orchestrator | 1.000 | 1.000 | 1.000–1.000 | 0.000000 | 66.90 | 4.50 / 5 | 2.93 | 6.43 |
 | swarm | 0.986 | 0.929 | 0.929–1.000 | 0.000816 | 49.57 | 2.80 / 3 | 3.00 | 4.66 |
 
-Cost là VND mô phỏng theo `config/pricing.yaml`, không phải hóa đơn API. Latency: `unavailable`. `steps` là số event trong trace nên phụ thuộc cách mỗi shape ghi trace; swarm ghi ít event hơn chứ không làm ít việc hơn (nó có nhiều tool call nhất).
+Cost là VND mô phỏng theo `config/pricing.yaml`, không phải hóa đơn API. Latency: `unavailable`. `steps` là số event trong trace nên phụ thuộc cách mỗi shape ghi trace; swarm ghi ít event hơn chứ không làm ít việc hơn (Orchestrator sau hardening có thêm read call xác minh).
 
 Đọc bảng:
 
-- Ba shape nhóm viết bằng nhau về độ đúng. Khác biệt chỉ còn là chi phí: single +29%, orchestrator +73% so với workflow.
+- Ba shape nhóm viết bằng nhau về độ đúng. Khác biệt chỉ còn là chi phí: single +29%, orchestrator +131.6% so với workflow.
 - Swarm fail một trial trên 70: `R-swarm-C-002-s55`, lý do `status resolved != denied`. Ticket ghi trễ 5 ngày, order ghi 2 ngày, swarm trả 20.000 VND. Cùng claim và seed đó, `R-workflow-C-002-s55` từ chối đúng. Ở single, trace của trial tương ứng ghi `ticket_conflict` (5 so với 2, dùng order row).
 
 ### Durability (`src/reports/crash.json`)
@@ -83,7 +83,7 @@ Crash safety **20/20**. Ngoài ra, test của nhóm cho mỗi shape crash ở c�
 
 | Bộ | Lệnh (trong `src/`) | Kết quả |
 | --- | --- | --- |
-| Cổng host, gồm test của nhóm | `python -m pytest -q` | 291 passed (54 có sẵn + 237 của nhóm) |
+| Cổng host, gồm test của nhóm | `python -m pytest -q` | 374 passed, 248 deselected |
 | Ma trận student T01–T14 | `python -m pytest -q -m student -o addopts=` | 248 passed (62 mỗi shape) |
 
 237 test của nhóm (`src/tests/test_team_shapes.py`) dựng các tình huống mà đề nói bộ hidden có: ticket khai quá và khai thiếu số ngày (kể cả seed 5, 10, 55), ticket chèn lệnh và mã đơn, clause cũ và clause tương lai, approval mượn của claim khác, thiếu, không tồn tại, bị thu hồi, hết hạn, bằng 0, approval thấp hơn quote, đơn hủy và đang giao, ship cộng damage, phí ship 0, mã đơn dùng chữ Cyrillic giống chữ Latin, mã đơn chỉ gồm khoảng trắng, sai principal, hai claim trên một đơn, store hỏng, và ticket bị gắn canary cùng SĐT. Nhãn viết tay theo `docs/business_rules.md`.
@@ -94,7 +94,7 @@ Chưa chạy. Nhóm chưa nhận thư mục `student_drop/` nên chưa có `src/
 
 ### Ablation (`src/reports/ablation_investigator_tools.json`)
 
-Đổi số read tool giao cho investigator, giữ nguyên mọi thứ khác: 2 tool 40.37 VND, 3 tool 49.91 VND, 5 tool 59.20 VND mỗi lần thành công; pass rate giữ 1.000 ở cả ba mức. Chi tiết trong research card.
+Đổi số read tool giao cho investigator, giữ nguyên mọi thứ khác: 2 tool 57.37 VND, 3 tool 66.90 VND, 5 tool 76.19 VND mỗi lần thành công; pass rate giữ 1.000 ở cả ba mức. Chi tiết trong research card.
 
 Quyết định kiến trúc và lý do: xem `report/team/decision_adr.md`. Phiếu nghiên cứu và ablation: xem `report/team/research_card.md`.
 
@@ -119,7 +119,7 @@ MockLLM không phải model sản xuất; latency là `unavailable`.
 
 - **Pass rate 1.000 của B và C một phần là do cách thiết kế.** Chính sách chọn tool của agent là code tất định, MockLLM chỉ tính token. Với model thật, B và C có thể chọn sai tool hoặc dừng sớm. Code của nhóm khi đó trả `failed` chứ không trả tiền sai, nên rủi ro là giảm pass rate, không phải mất tiền. Con số 1.000 không dự đoán được pass rate với model thật.
 - **Chưa có số hidden.** Kết luận chọn workflow dựa trên 14 claim public và test tự viết.
-- **Chi phí là mô phỏng.** Tỉ lệ +29% và +73% phụ thuộc bảng giá trong `config/pricing.yaml` và độ dài prompt nhóm chọn. Thứ tự A < B < C thì ổn định hơn vì nó theo số lần gọi model và tool.
+- **Chi phí là mô phỏng.** Tỉ lệ +29% và +131.6% phụ thuộc bảng giá trong `config/pricing.yaml` và độ dài prompt nhóm chọn. Thứ tự A < B < C thì ổn định hơn vì nó theo số lần gọi model và tool.
 - **Workflow không xử lý được thông tin chỉ có trong chữ tự do.** Nếu nghiệp vụ cần đọc bằng chứng không cấu trúc, kết luận phải đo lại (điều kiện đảo quyết định trong ADR).
 - **`_GuardedTrace` chỉ bắt chuỗi đã biết tên.** Kiểm soát chính vẫn là allowlist.
 

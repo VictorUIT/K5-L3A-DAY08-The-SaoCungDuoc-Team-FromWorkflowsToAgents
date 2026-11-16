@@ -4,10 +4,10 @@
 `Shape chọn` phải là đúng một trong: `workflow`, `single`, `orchestrator`, `swarm`. Đây là shape được chấm cổng hidden.
 
 - Shape chọn: workflow
-- Commit hash: 629ab80
+- Commit hash: 0d036c7
 - Run id dẫn chứng: `R-workflow-C-002-s55` (ticket ghi 5 ngày, order ghi 2 ngày, workflow từ chối đúng), `R-swarm-C-002-s55` (cùng claim, cùng seed, swarm trả 20.000 sai), `R-workflow-C-014-s55` (T14, quote 150.000, ledger 120.000). Nguồn: `src/reports/benchmark.json`
 - Pass rate / pass^5 / seed min-max / variance: 1.000 / 1.000 / 1.000–1.000 / 0.000000 trên 14 claim public × 5 seed = 70 trial (`src/reports/benchmark.json`)
-- Cost per success (mô phỏng, VND): 28.89 (single 37.21, swarm 49.57, orchestrator 49.91)
+- Cost per success (mô phỏng, VND): 28.89 (single 37.21, swarm 49.57, orchestrator 66.90)
 - Crash safety: 20/20 (`src/reports/crash.json`)
 - Secret leak / approval bypass: 0 / 0 trên bộ public (không trial nào fail vì `forbidden_substring`; T07 approval hết hạn không tạo refund). Số trên bộ hidden do giảng viên chấm, nhóm chưa có
 
@@ -21,16 +21,16 @@ Trên cùng 14 claim public, cùng 5 seed (11, 22, 33, 44, 55), cùng MockLLM v�
 | --- | ---: | ---: | --- | ---: | ---: | --- | ---: |
 | workflow | 1.000 | 1.000 | 1.000–1.000 | 0.000000 | 28.89 | 4.43 / 5 | 1.00 |
 | single | 1.000 | 1.000 | 1.000–1.000 | 0.000000 | 37.21 | 6.07 / 7 | 4.43 |
-| orchestrator | 1.000 | 1.000 | 1.000–1.000 | 0.000000 | 49.91 | 4.50 / 5 | 2.93 |
+| orchestrator | 1.000 | 1.000 | 1.000–1.000 | 0.000000 | 66.90 | 4.50 / 5 | 2.93 |
 | swarm (tham chiếu) | 0.986 | 0.929 | 0.929–1.000 | 0.000816 | 49.57 | 2.80 / 3 | 3.00 |
 
-Lý do pass rate bằng nhau không phải ngẫu nhiên: ở cả ba shape, mọi quyết định về tiền đều đi qua cùng một đường code (`lookup_order` → `compute_compensation` → `durability.issue_refund`). Model chỉ chọn thứ tự đọc (single), lập kế hoạch và báo cáo (orchestrator), hoặc soạn câu trả lời (workflow). Test `test_three_shapes_agree_on_every_public_claim` kiểm ba shape cho cùng status, cùng proposal và cùng ledger trên cả 70 trial. Vì vậy single đắt hơn workflow 29% và orchestrator đắt hơn 73% mà không mua thêm được trial pass nào.
+Lý do pass rate bằng nhau không phải ngẫu nhiên: ở cả ba shape, mọi quyết định về tiền đều đi qua cùng một đường code (`lookup_order` → `compute_compensation` → `durability.issue_refund`). Model chỉ chọn thứ tự đọc (single), lập kế hoạch và báo cáo (orchestrator), hoặc soạn câu trả lời (workflow). Test `test_three_shapes_agree_on_every_public_claim` kiểm ba shape cho cùng status, cùng proposal và cùng ledger trên cả 70 trial. Vì vậy single đắt hơn workflow 29% và orchestrator đắt hơn 131.6% mà không mua thêm được trial pass nào.
 
 Swarm là shape duy nhất có variance khác 0. Nó fail đúng một trial, `R-swarm-C-002-s55`: ở seed chia hết cho 5, swarm lấy "trễ 5 ngày" trong ticket thay cho `delay_days = 2` của order và trả 20.000 VND. Workflow không đọc ticket để quyết định nên không có đường nào dẫn tới lỗi này.
 
 ## Có đáng đổi lấy multi-agent không
 
-Với dữ liệu hiện có thì không: multi-agent không nhỉnh hơn ở pass rate (orchestrator bằng, swarm thấp hơn) mà cost/success cao hơn 72–73%, và swarm còn thêm variance. Nhóm giữ workflow.
+Với dữ liệu hiện có thì không: multi-agent không nhỉnh hơn ở pass rate (orchestrator bằng, swarm thấp hơn) mà cost/success cao hơn khoảng 72% (swarm) và 131.6% (orchestrator), và swarm còn thêm variance. Nhóm giữ workflow.
 
 Quyết định sẽ đảo lại khi một trong các điều kiện sau xuất hiện, và phải đo lại trên cùng corpus, cùng seed:
 
@@ -53,7 +53,7 @@ Trong cả ba trường hợp, phần ghi tiền vẫn ở code và host. Thứ 
 
 - Chữ trong ticket. Đây là dữ liệu người dùng: có thể chứa SĐT, địa chỉ hoặc chuỗi secret do khách dán vào. Trace chỉ ghi `has_order_id` và, ở single, con số ngày trễ mà ticket khai.
 - `principal_id`, `parent_secret`, `raw_headers`. Shape đọc claim qua `get_claim_view` nên hai field sau không bao giờ vào bộ nhớ của shape.
-- Dòng order thô. Trace chỉ ghi 6 field: `order_id`, `status`, `delay_days`, `shipping_fee_vnd`, `paid_vnd`, `damage_verified`. Không ghi `carrier` vì quyết định không dùng đến. SĐT, địa chỉ, ghi chú nội bộ, tên hàng không qua được allowlist của `lookup_order`.
+- Dòng order thô. Workflow và single giữ allowlist order sẵn có. Riêng báo cáo investigator của Orchestrator sau hardening chỉ ghi visibility boolean, history số nguyên và diagnostic quote; không ghi các giá trị order/reason tự do. Không ghi `carrier` vì quyết định không dùng đến. SĐT, địa chỉ, ghi chú nội bộ, tên hàng không qua được allowlist của `lookup_order`.
 - Câu trả lời do model soạn. Grader không đọc, và ghi ra chỉ thêm bề mặt rò rỉ.
 
 **Kiểm soát:** lớp chính là allowlist (chỉ thêm vào trace những field đã liệt kê). Lớp phụ là `_GuardedTrace`: trước khi ghi file, nếu nội dung có `CANARY_`, `parent_secret`, `raw_headers` hoặc `Bearer ` thì thay toàn bộ event bằng một event `redacted`. Lớp phụ chỉ bắt được chuỗi đã biết tên, nên không thay được allowlist.
@@ -65,4 +65,4 @@ Trong cả ba trường hợp, phần ghi tiền vẫn ở code và host. Thứ 
 - MockLLM không phải model sản xuất: nó cố định theo seed và không suy luận. Chi phí model của single và orchestrator là mô phỏng theo `config/pricing.yaml`, không phải hóa đơn API. Với model thật, vòng ReAct có thể chọn sai tool hoặc dừng sớm; code của nhóm xử lý việc đó bằng cách trả `failed` chứ không trả tiền, nhưng pass rate khi đó sẽ thấp hơn 1.000.
 - Latency là `unavailable`. Nhóm không so tốc độ giữa các shape.
 - Số liệu trên là bộ public 14 claim. Pass rate hidden (40 claim × 5 seed) do giảng viên chấm; nhóm chưa có `student_drop/` nên chưa tự kiểm được. Nhóm đã viết thêm 237 test đối kháng trong `src/tests/test_team_shapes.py` theo mô tả của bộ hidden, nhưng đó không phải bộ hidden.
-- Các file JSON trong `src/reports/` do công cụ sinh ra và không bị sửa tay. Chạy lại lệnh benchmark hai lần cho hai file giống nhau từng byte.
+- Các file JSON trong `src/reports/` do công cụ sinh ra và không bị sửa tay. Lượt đo lại này đối chiếu baseline và working tree: summary của workflow, single, swarm giữ nguyên; Orchestrator đổi chi phí vì thêm xác minh độc lập và rút gọn diagnostic.
