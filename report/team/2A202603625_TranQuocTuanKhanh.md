@@ -4,9 +4,9 @@
 
 ## 1. Thông tin thành viên
 
-- Họ tên: `ĐIỀN`
-- MSSV: `ĐIỀN`
-- Email: `ĐIỀN`
+- Họ tên: Trần Quốc Tuấn Khanh
+- MSSV: 2A202603625
+- Email: tranquoctuankhanh1194@gmail.com
 - GitHub: [VictorUIT](https://github.com/VictorUIT)
 
 ## 2. Phần việc phụ trách
