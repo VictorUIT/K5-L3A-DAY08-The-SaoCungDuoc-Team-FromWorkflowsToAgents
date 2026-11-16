@@ -54,11 +54,11 @@ Báo cáo cá nhân: [report/team/2A202603625_TranQuocTuanKhanh.md](report/team/
 
 ### Đóng góp cụ thể
 
-- Commit `d6c1b94` (báo cáo cá nhân). Commit kỹ thuật kèm test: điền sau khi commit
+- Commit `d6c1b94` (báo cáo cá nhân). Commit kỹ thuật kèm test: `1b48aed` (thêm `src/tests/test_workflow_steps.py`)
 
 ### Bằng chứng
 
-- Điền sau khi commit
+- `src/tests/test_workflow_steps.py`: khóa thứ tự bước cố định của workflow (`claim, order, quote, host_refund, decision`) và ngân sách gọi (1 model call, tối đa 3 tool call) trên 14 claim public. `python -m pytest -q` ở `src/`: 306 passed
 
 ## 2A202603600_NguyenVanNgocSon
 

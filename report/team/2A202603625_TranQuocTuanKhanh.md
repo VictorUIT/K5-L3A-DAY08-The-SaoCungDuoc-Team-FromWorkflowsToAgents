@@ -19,11 +19,12 @@ Vai: **Workflow + Integration**.
 
 ## 3. Đóng góp cụ thể
 
-**Commit chính (hash):** [`d6c1b94`](https://github.com/VictorUIT/K5-L3A-DAY08-The-SaoCungDuoc-Team-FromWorkflowsToAgents/commit/d6c1b94) (đổi tên và điền thông tin báo cáo cá nhân). Commit kỹ thuật kèm test: `ĐIỀN`.
+**Commit chính (hash):** [`d6c1b94`](https://github.com/VictorUIT/K5-L3A-DAY08-The-SaoCungDuoc-Team-FromWorkflowsToAgents/commit/d6c1b94) (đổi tên và điền thông tin báo cáo cá nhân). Commit kỹ thuật kèm test: [`1b48aed`](https://github.com/VictorUIT/K5-L3A-DAY08-The-SaoCungDuoc-Team-FromWorkflowsToAgents/commit/1b48aed) (thêm `src/tests/test_workflow_steps.py`).
 
-**Test đã thêm hoặc sửa:** `ĐIỀN` sau khi bạn commit. Rubric C8 cần mỗi người một commit có nội dung và ít nhất một test đã thêm hoặc sửa. Một test còn thiếu trong phần này mà bạn có thể tự viết:
+**Test đã thêm hoặc sửa:** `src/tests/test_workflow_steps.py` (15 test, đều pass):
 
-- *Workflow luôn đi đúng các bước cố định.* Chạy `C-001` rồi đọc trace: thứ tự `kind` của các event phải đúng là `claim, order, quote, host_refund, decision`, `model_calls == 1` và `tool_calls == 3`. Trên cả 14 claim public, `model_calls` luôn bằng 1 và `tool_calls` không quá 3. Hành vi này đang đúng nhưng chưa có test khóa lại.
+- `test_resolved_claim_walks_every_fixed_step_in_order`: chạy `C-001`, thứ tự `kind` trong trace đúng là `claim, order, quote, host_refund, decision`, `model_calls == 1` và `tool_calls == 3`.
+- `test_one_model_call_and_at_most_three_tool_calls`: trên cả 14 claim public, `model_calls` luôn bằng 1, `tool_calls` không quá 3, và `decision` luôn là event cuối, chỉ xuất hiện một lần (model không bao giờ chạy trước quyết định).
 
 **Các quyết định kỹ thuật trong phần này** (người chấm có thể hỏi trực tiếp):
 
