@@ -22,9 +22,10 @@ Steps:
    principal id, no secret, no headers.
 4. Investigator runs `lookup_order`, `lookup_refund_history`, `compute_compensation`
    and reports back (one MockLLM "investigate" call).
-5. Orchestrator verifies the report in code: order visible, quote well-formed
-   (amount equals the largest eligible part — max, never the sum). A report that
-   fails the check is not paid from; code recomputes the quote.
+5. Orchestrator independently re-reads the claim-bound order (principal scoped),
+   recalculates the canonical quote under current policy, and compares both
+   against the investigator report. Any disagreement is traced and ignored.
+   Two additional read calls are measured in the tool budget.
 6. FULL quote to `durability.issue_refund`; the host owns approval, per-order
    cap, and idempotency.
 7. One MockLLM "draft" call words the reply after the decision.
@@ -46,7 +47,7 @@ from lab8.mock_llm import complete
 from lab8.runtime import run_readonly_investigators
 from lab8.schemas import Budget, RunResult, make_run_id
 from lab8.shapes.common import finish, safe_dump
-from lab8.tools import compute_compensation, get_claim_view, tool_cost
+from lab8.tools import compute_compensation, get_claim_view, lookup_order, tool_cost
 from lab8.trace import Trace
 
 SHAPE = "orchestrator"
@@ -54,7 +55,6 @@ SHAPE = "orchestrator"
 # Read-only, in dependency order: the quote needs the order view from the same handoff.
 INVESTIGATOR_TOOLS = ["lookup_order", "lookup_refund_history", "compute_compensation"]
 
-_ORDER_TRACE_FIELDS = ("order_id", "status", "delay_days", "shipping_fee_vnd", "paid_vnd", "damage_verified")
 # Tripwire only. The real control is that nothing outside the allowlist is ever added.
 _LEAK_MARKERS = ("CANARY_", "parent_secret", "raw_headers", "Bearer ")
 
@@ -180,21 +180,34 @@ def _run(
 
     # Step 4: investigator works from the handoff with read tools only.
     investigated = run_readonly_investigators(conn, budget, handoff, principal_id=claim["principal_id"])
-    tools = investigated.get("tools") or {}
+    tools = investigated.get("tools") if isinstance(investigated, dict) else None
+    tools = tools if isinstance(tools, dict) else {}
     report = _report(tools)
     complete(budget, seed=seed, purpose="investigate", prompt=json.dumps(report, ensure_ascii=False))
     trace.add("investigator", report)
 
-    # Step 5: verify the report before any money decision.
-    order_view = tools.get("lookup_order") or {}
-    if not order_view.get("visible"):
-        return done("escalated", 0, order_view.get("reason") or "order_not_visible")
-    order = order_view["order"]
-    quote = tools.get("compute_compensation")
-    problem = _quote_problem(quote)
+    # Step 5: investigator output is evidence, NOT authority for money.
+    # Independently re-read the claim-bound order under its principal scope and
+    # recompute the canonical quote using current policy. Charge both read calls.
+    # This protects against a *self-consistent but fabricated* investigator quote
+    # (old code checked only amount == max(reported_parts)).
+    budget.add_tool(tool_cost())
+    trusted_order_view = lookup_order(conn, order_id, claim["principal_id"])
+    if not trusted_order_view.get("visible"):
+        return done("escalated", 0, trusted_order_view.get("reason") or "order_not_visible")
+    order = trusted_order_view["order"]
+    budget.add_tool(tool_cost())
+    quote = compute_compensation(conn, order)
+
+    reported_order_view = tools.get("lookup_order") or {}
+    reported_order = reported_order_view.get("order") if isinstance(reported_order_view, dict) else None
+    reported_quote = tools.get("compute_compensation")
+    problem = _quote_problem(reported_quote)
+    if reported_order != order:
+        problem = "order_mismatch"
+    elif problem is None and reported_quote != quote:
+        problem = "quote_mismatch"
     if problem:
-        budget.add_tool(tool_cost())
-        quote = compute_compensation(conn, order)
         trace.add("report_rejected", {"reason": problem, "recomputed": _quote_event(quote)})
     proposal = int(quote["amount_vnd"])
     if proposal <= 0:
@@ -211,23 +224,25 @@ def _run(
 
 
 def _report(tools: dict[str, Any]) -> dict[str, Any]:
-    """Allowlisted summary of what the investigator found. This is what gets traced."""
+    """Trace typed diagnostics only: even allowlisted values may contain PII."""
     report: dict[str, Any] = {}
-    order_view = tools.get("lookup_order") or {}
-    if order_view.get("visible"):
-        order = order_view.get("order") or {}
-        report["order"] = {"visible": True, **{key: order[key] for key in _ORDER_TRACE_FIELDS if key in order}}
-    else:
-        report["order"] = {"visible": False, "reason": order_view.get("reason")}
-    history = tools.get("lookup_refund_history") or {}
-    if history.get("visible"):
+    order_view = tools.get("lookup_order")
+    report["order"] = {"visible": isinstance(order_view, dict) and order_view.get("visible") is True}
+    history = tools.get("lookup_refund_history")
+    if isinstance(history, dict) and history.get("visible") is True:
         report["refund_history"] = {
-            "refund_count": history.get("refund_count"),
-            "refunded_vnd": history.get("refunded_vnd"),
+            key: value if type(value) is int and value >= 0 else None
+            for key in ("refund_count", "refunded_vnd")
+            for value in (history.get(key),)
         }
     quote = tools.get("compute_compensation")
     if isinstance(quote, dict):
-        report["quote"] = _quote_event(quote)
+        amount = quote.get("amount_vnd")
+        # Investigator text is untrusted; trace only primitive diagnostic facts.
+        report["quote"] = {
+            "amount_vnd": amount if isinstance(amount, int) and not isinstance(amount, bool) else None,
+            "well_formed": _quote_problem(quote) is None,
+        }
     return report
 
 
@@ -239,6 +254,11 @@ def _quote_problem(quote: Any) -> str | None:
     if not isinstance(amount, int) or isinstance(amount, bool) or amount < 0:
         return "bad_amount"
     parts = quote.get("parts") or {}
+    if not isinstance(parts, dict) or any(
+        not isinstance(value, int) or isinstance(value, bool) or value < 0
+        for value in parts.values()
+    ):
+        return "bad_parts"
     expected = max(parts.values()) if parts else 0
     if amount != expected:
         # Stacking rule: one refund equal to the largest eligible part, never the sum.
