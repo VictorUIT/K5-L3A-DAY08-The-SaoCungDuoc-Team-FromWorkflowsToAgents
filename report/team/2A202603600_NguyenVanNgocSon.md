@@ -1,7 +1,5 @@
 # Báo cáo cá nhân — 2A202603600_NguyenVanNgocSon
 
-> **Bản nháp.** Các ô ghi `ĐIỀN` phải do chính bạn điền. Xóa ghi chú này trước khi nộp.
-
 ## 1. Thông tin thành viên
 
 - Họ tên: Nguyễn Văn Ngọc Sơn
@@ -60,13 +58,14 @@ Cách tự kiểm tra kết quả (chạy trong `src/`):
 - Chạy lệnh benchmark hai lần, hai file `reports/benchmark.json` giống nhau từng byte.
 - Chạy ba shape và swarm tham chiếu trên 600 claim sinh ngẫu nhiên; lần đầu lộ ra lỗi `order_id` chỉ gồm khoảng trắng, sau khi sửa không còn trial nào lệch.
 
-Công cụ AI bạn tự dùng thêm (nếu có) và dùng vào việc gì: `ĐIỀN`.
-
 ## 6. Tự đánh giá
 
-`ĐIỀN` — tự viết 3–5 dòng. Gợi ý câu hỏi để trả lời:
+**Phần tôi trực tiếp làm.** Tôi đặt yêu cầu và phạm vi cho từng checkpoint, điều khiển Claude Code thực hiện, yêu cầu kiểm tra lại toàn bộ trước khi commit, kết nối và đưa code lên repo nhóm, thống nhất vai của bốn thành viên và điền thông tin cá nhân. Lần kiểm tra lại trước khi commit là lúc lộ ra lỗi `order_id` chỉ gồm khoảng trắng.
 
-- Phần nào trong vai của mình bạn giải thích được mà không cần nhìn code? Phần nào chưa?
-- Vì sao pass rate 1.000 của single không dự đoán được kết quả với model thật?
-- Bạn đã tự viết hoặc sửa gì, và phần nào là do công cụ AI sinh ra rồi bạn kiểm lại?
-- Nếu làm lại, bạn sẽ làm khác điều gì?
+**Phần do AI sinh ra.** Code ba shape, bộ test `src/tests/test_team_shapes.py`, script chạy benchmark và ablation, và bản nháp các báo cáo là do Claude Code viết theo yêu cầu của tôi. Tôi không tự viết tay các file này. Tôi dựa vào kết quả chạy lại được (291 test, ma trận student 248/248, crash 20/20, benchmark sinh lại giống từng byte) để tin kết quả, chứ không dựa vào lời mô tả của AI.
+
+**Điều rút ra về shape Single Agent.** Pass rate 1.000 của single trên bộ public không nói được gì về model thật: chính sách chọn tool trong `single.py` là code tất định, MockLLM chỉ tính token. Thứ thật sự bảo vệ tiền là phần code sau vòng lặp (`_settle`) và host, không phải model. So với workflow, single đắt hơn 29% mà không thêm trial pass nào, nên tôi đồng ý với quyết định chọn workflow trong ADR.
+
+**Hạn chế của bản thân.** Tôi phụ thuộc nhiều vào công cụ AI ở phần viết code. Commit của tôi gồm cả phần thuộc vai của các bạn khác, nên lịch sử commit chưa phản ánh đúng cách chia vai của nhóm. Nhánh chạm trần 8 bước của single chạy đúng nhưng chưa có test.
+
+**Nếu làm lại.** Tôi sẽ chia việc theo vai ngay từ CP1 để mỗi người tự commit phần của mình, tự viết ít nhất một test cho single trước khi dùng AI, và chạy tự kiểm trên `student_drop/` trước khi chốt ADR.
