@@ -17,7 +17,7 @@ Vai: **Ledger + Evaluation**.
 
 ## 3. Đóng góp cụ thể
 
-**Commit chính (hash):** `ĐIỀN`.
+**Commit chính (hash):** [`3744137`](https://github.com/VictorUIT/K5-L3A-DAY08-The-SaoCungDuoc-Team-FromWorkflowsToAgents/commit/3744137).
 
 **Bonus B5 — Provider idempotency và reconciliation** (báo cáo: [bonus_report.md](bonus_report.md)). Phần này nối tiếp vai Ledger: ledger của lab chỉ bảo vệ dòng ledger, bonus đo chuyện gì xảy ra khi tiền còn phải đi qua một provider bên ngoài.
 
@@ -55,12 +55,12 @@ Vai: **Ledger + Evaluation**.
 
 ## 4. Bằng chứng
 
-- Link commit của bạn: `ĐIỀN`
+- Link commit của bạn: https://github.com/VictorUIT/K5-L3A-DAY08-The-SaoCungDuoc-Team-FromWorkflowsToAgents/commit/3744137
 - Bonus B5, lệnh tái lập (trong `src/`):
   - `python -m bonus.provider_crash --out reports/bonus_provider_crash.json` → `exactly_once 16/16   guards 4/4`
   - `python -m lab8.benchmark --shapes workflow,workflow_provider,swarm --extra-shape workflow_provider=bonus.workflow_provider:run_claim --seeds 11,22,33,44,55 --out reports/bonus_benchmark.json`
   - `python -m pytest -q tests/test_bonus_provider.py tests/test_ledger_replay_conflict.py` → `46 passed`
-  - `python -m pytest -q` → `337 passed` (291 có sẵn + 46 mới)
+  - `python -m pytest -q` → `352 passed` (306 có sẵn + 46 mới)
 - File do script sinh ra, chạy hai lần cho kết quả giống từng byte, trên Python 3.12 và 3.14:
   - `src/reports/bonus_provider_crash.json`: `exactly_once` = `16/16`, `guards_passed` = `4/4`; mục `matrix`, `counterexamples`, `safety`.
   - `src/reports/bonus_benchmark.json`: workflow 1.000 / 28.89 VND; workflow_provider 1.000 / 38.89 VND; swarm 0.986 / 49.57 VND.
@@ -80,7 +80,7 @@ Cách tự kiểm tra kết quả: chạy lại trên máy mình (Windows 11, tr
 
 | Lệnh | Kết quả |
 | --- | --- |
-| `python -m pytest -q` | `337 passed, 248 deselected` |
+| `python -m pytest -q` | `352 passed, 248 deselected` |
 | `python -m pytest -q -m student -o addopts= -k "t11 or t12"` | `8 passed` |
 | `python -m lab8.crash_test --count 20 --out reports/crash.json` | `crash_safety 20/20` |
 | Lệnh benchmark trong `src/reports/README.md` | workflow / single / orchestrator 1.000; swarm 0.986, pass^5 0.929 |

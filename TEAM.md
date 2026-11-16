@@ -30,7 +30,7 @@ Gợi ý chia vai:
 | Trần Quốc Tuấn Khanh | Workflow + Integration | `d6c1b94` (báo cáo cá nhân); commit kỹ thuật: chưa có | chưa có |
 | Nguyễn Văn Ngọc Sơn | Single Agent | `24eae51` (ba shape), `7d27079` (test), `1a2a348` (bằng chứng), `629ab80` (báo cáo) | `src/tests/test_team_shapes.py` (237 test) |
 | Nguyễn Bình An | Orchestrator + Handoff | chưa có commit | chưa có |
-| Đỗ Phương Nam | Ledger + Evaluation | `ĐIỀN` (bonus B5: provider idempotency + reconciliation, test ledger) | `src/tests/test_bonus_provider.py` (43 test), `src/tests/test_ledger_replay_conflict.py` (3 test) |
+| Đỗ Phương Nam | Ledger + Evaluation | `3744137` (bonus B5: provider idempotency + reconciliation, test ledger) | `src/tests/test_bonus_provider.py` (43 test), `src/tests/test_ledger_replay_conflict.py` (3 test) |
 
 ## Cá nhân
 
@@ -103,7 +103,7 @@ Báo cáo cá nhân: [report/team/2A202603621_DoPhuongNam.md](report/team/2A2026
 
 ### Đóng góp cụ thể
 
-- Commit `ĐIỀN`
+- Commit `3744137`
 - `src/bonus/`: provider giả lập (dedupe / không dedupe), luồng hai pha `reserve → provider → confirm` cạnh host với 3 điểm crash mới, job `reconcile()`, biến thể shape `workflow_provider`, crash suite 16 kịch bản
 - Test: `src/tests/test_bonus_provider.py` (43 test), `src/tests/test_ledger_replay_conflict.py` (3 test, nhánh `amount_conflict` của ba shape)
 
@@ -111,4 +111,4 @@ Báo cáo cá nhân: [report/team/2A202603621_DoPhuongNam.md](report/team/2A2026
 
 - `src/reports/bonus_provider_crash.json`: `exactly_once` 16/16, `guards_passed` 4/4; phản ví dụ provider không dedupe charge 2 lần
 - `src/reports/bonus_benchmark.json`: workflow_provider pass rate 1.000, cost/success 38.89 VND (workflow 28.89)
-- `python -m pytest -q` (trong `src/`): 337 passed; run id `R-workflow_provider-C-001-s11`
+- `python -m pytest -q` (trong `src/`): 352 passed; run id `R-workflow_provider-C-001-s11`
